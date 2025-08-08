@@ -91,6 +91,10 @@ const userSchema = new mongoose.Schema({
         unique: true,
         trim: true,
     },
+    nickname: {
+        type: String,
+        required: true,
+    },
     password: {
         type: String,
         required: true,
@@ -224,15 +228,15 @@ app.put("/putopendata/:_id", authenticateToken, async (req, res) => {
 // ユーザー新規登録エンドポイント (変更なし)
 app.post("/api/auth/signup", async (req, res) => {
     try {
-        const { username, password } = req.body;
-        if (!username || !password) {
-            return res.status(400).json({ message: "ユーザー名とパスワードは必須です。" });
+        const { username, password, nickname } = req.body;
+        if (!username || !password || !nickname) {
+            return res.status(400).json({ message: "ユーザー名、ニックネーム、パスワードは必須です。" });
         }
         const existingUser = await User.findOne({ username });
         if (existingUser) {
             return res.status(409).json({ message: "このユーザー名は既に使用されています。" });
         }
-        const newUser = new User({ username, password });
+        const newUser = new User({ username, nickname, password });
         await newUser.save();
         res.status(201).json({ message: "ユーザー登録が成功しました。", userId: newUser._id });
     } catch (error) {
@@ -259,7 +263,7 @@ app.post("/api/auth/login", async (req, res) => {
 
         // ★ JWTトークンを生成
         const accessToken = jwt.sign(
-            { id: user._id, username: user.username },
+            { id: user._id, username: user.username, nickname: user.nickname },
             process.env.JWT_SECRET,
             { expiresIn: '1h' } // トークンの有効期限
         );
@@ -269,6 +273,7 @@ app.post("/api/auth/login", async (req, res) => {
             user: {
                 id: user._id,
                 username: user.username,
+                nickname: user.nickname,
             },
             token: accessToken, // ★ トークンをレスポンスに含める
         });
