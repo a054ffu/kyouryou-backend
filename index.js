@@ -289,7 +289,7 @@ app.get("/gethistory", async (req, res) => {
         // ★ .populate()を使って、userフィールドに紐づくUserドキュメントのusernameを取得
         const historyData = await History.find()
             .sort({ timestamp: -1 }) // 最新順に取得
-            .populate('user', 'username'); // 'user'フィールドを参照し、'username'のみ取得
+            .populate('user', 'username nickname');
 
         res.json(historyData);
     } catch (err) {
